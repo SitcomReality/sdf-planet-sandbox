@@ -135,12 +135,11 @@ float mapGhost(vec3 p) {
 }
 
 float mapAll(vec3 p) {
-  float ds = mapSceneFull(p, planetW_tmp).x;
+  float dummy;
+  float ds = mapSceneFull(p, dummy).x;
   float dg = mapGhost(p);
   return min(ds, dg);
 }
-
-float planetW_tmp;
 vec3 calcNormal(vec3 p) {
   const float h = 0.01;
   const vec2 k = vec2(1.0, -1.0);
