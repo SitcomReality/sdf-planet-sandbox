@@ -92,10 +92,16 @@ vec3 planetColorBase(vec3 p) {
   return mix(vec3(0.42, 0.55, 0.25), vec3(0.55, 0.45, 0.30), clamp(h * 4.0 + 0.5, 0.0, 1.0));
 }
 
-vec4 mapSceneFull(vec3 p, out float planetW) {
+struct Scene {
+  float d;
+  vec3 col;
+  float w;
+};
+
+Scene mapSceneFull(vec3 p) {
   float d = sdPlanet(p);
   vec3  col = planetColorBase(p);
-  planetW = 1.0;
+  float planetW = 1.0;
   const float K_ADD = 0.15;
   const float K_SUB = 0.20;
   for (int i = 0; i < 96; i++) {
@@ -122,7 +128,7 @@ vec4 mapSceneFull(vec3 p, out float planetW) {
       d = mix(b2, a2, h2) + k * h2 * (1.0 - h2);
     }
   }
-  return vec4(d, col);
+  return Scene(d, col, planetW);
 }
 
 float mapGhost(vec3 p) {
@@ -135,8 +141,7 @@ float mapGhost(vec3 p) {
 }
 
 float mapAll(vec3 p) {
-  float dummy;
-  float ds = mapSceneFull(p, dummy).x;
+  float ds = mapSceneFull(p).d;
   float dg = mapGhost(p);
   return min(ds, dg);
 }
@@ -186,17 +191,17 @@ void main() {
     fragColor = vec4(sky, 1.0); return;
   }
   vec3 n = calcNormal(p);
-  float planetW; vec4 sceneRes = mapSceneFull(p, planetW);
+  Scene sceneRes = mapSceneFull(p);
   float dGhost = mapGhost(p);
-  bool isGhost = dGhost < sceneRes.x;
+  bool isGhost = dGhost < sceneRes.d;
   vec3 base;
   if (isGhost) {
     float pulse = 0.5 + 0.5 * sin(uTime * 4.0);
     base = (uGhostOp > 0.0) ? mix(vec3(0.3, 0.85, 1.0), vec3(0.65, 1.0, 1.0), pulse) : mix(vec3(1.0, 0.35, 0.35), vec3(1.0, 0.65, 0.55), pulse);
   } else {
-    base = sceneRes.yzw;
+    base = sceneRes.col;
     float steep = 1.0 - clamp(dot(n, normalize(p)), 0.0, 1.0);
-    base = mix(base, vec3(0.45, 0.42, 0.40), smoothstep(0.4, 0.8, steep) * planetW);
+    base = mix(base, vec3(0.45, 0.42, 0.40), smoothstep(0.4, 0.8, steep) * sceneRes.w);
   }
   float diff = max(dot(n, uSunDir), 0.0);
   float amb = 0.35 + 0.25 * (n.y * 0.5 + 0.5);

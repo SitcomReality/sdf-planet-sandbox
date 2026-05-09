@@ -24,10 +24,15 @@ const playSound = async (path) => {
 
 const init = () => {
   const canvas = document.getElementById("gl-canvas");
-  engine = new SdfEngine(canvas, {
-    onLoadingProgress: (label, frac) => hud?.updateProgress(label, frac)
-  });
+  engine = new SdfEngine(canvas);
   hud = new Hud(engine);
+
+  engine.callbacks.onLoadingProgress = (label, frac) => hud.updateProgress(label, frac);
+  
+  // Actually kick off the logic
+  setTimeout(() => {
+    engine.seedTerrain();
+  }, 10);
 
   // Input Handling
   window.addEventListener("keydown", (e) => {
@@ -132,4 +137,5 @@ const tick = (now) => {
   requestAnimationFrame(tick);
 };
 
-window.onload = init;
+if (document.readyState === 'complete') init();
+else window.addEventListener('load', init);

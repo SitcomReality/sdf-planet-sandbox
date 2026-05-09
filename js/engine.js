@@ -28,7 +28,6 @@ export class SdfEngine {
     this.hueCursor = 0.0;
     this.hueStep = 0.07;
     this.initGL();
-    this.seedTerrain();
   }
 
   initGL() {
