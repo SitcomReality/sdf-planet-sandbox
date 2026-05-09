@@ -72,8 +72,22 @@ const init = () => {
 
   window.addEventListener("wheel", (e) => {
     if (!isPointerLocked) return;
-    engine.ghostDistance = Math.max(0.8, Math.min(15, engine.ghostDistance - e.deltaY * 0.003));
-    engine.markDirty();
+    e.preventDefault();
+
+    // If E is held, scale the ghost/object; otherwise adjust ghost distance
+    if (keys["e"]) {
+      // scale factor from wheel (invert sign so wheel up increases size)
+      const scaleDelta = 1 - e.deltaY * 0.0025;
+      const minScale = 0.05, maxScale = 3.0;
+      engine.shapeSize = engine.shapeSize.map(s => {
+        const ns = s * scaleDelta;
+        return Math.max(minScale, Math.min(maxScale, ns));
+      });
+      engine.markDirty();
+    } else {
+      engine.ghostDistance = Math.max(0.8, Math.min(15, engine.ghostDistance - e.deltaY * 0.003));
+      engine.markDirty();
+    }
   }, { passive: false });
 
   document.addEventListener("pointerlockchange", () => {
