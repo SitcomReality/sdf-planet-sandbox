@@ -338,11 +338,25 @@ select {
     gap: 8px;
 }
 
-#color-sliders label {
+.menu-section label {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
     font-size: 12px;
+    width: 100%;
+}
+
+/* Keep color sliders full width but inherit the stacked label layout */
+#color-sliders label {
+    width: 100%;
+}
+
+/* Ensure all range inputs fill their container for clear association with their label */
+#color-sliders label input[type="range"],
+.menu-section input[type="range"] {
+    width: 100%;
+    cursor: pointer;
 }
 
 #color-sliders input[type="range"] {
