@@ -39,8 +39,20 @@ const init = () => {
     const k = e.key.toLowerCase(); keys[k] = true;
     if (k >= "1" && k <= "4") hud.selectShape(parseInt(k)-1);
     if (k === " ") e.preventDefault();
-    if (e.key === "Escape" && !isPointerLocked) {
-      canvas.requestPointerLock();
+
+    // Improved Escape handling:
+    // - If pointer locked, exit pointer lock (show overlay).
+    // - If not pointer locked and the overlay is hidden, request pointer lock (resume).
+    // - If not pointer locked and the overlay is visible, hide the overlay (close menu) without re-locking.
+    if (e.key === "Escape") {
+      const overlayVisible = !hud.elements.playOverlay.classList.contains("hidden");
+      if (isPointerLocked) {
+        document.exitPointerLock();
+      } else if (overlayVisible) {
+        hud.setPlayOverlay(false);
+      } else {
+        canvas.requestPointerLock();
+      }
     }
   });
   window.addEventListener("keyup", (e) => keys[e.key.toLowerCase()] = false);
