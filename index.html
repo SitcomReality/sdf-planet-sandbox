@@ -1,18 +1,67 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SDF Sandbox — Placeholder</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SDF Sandbox</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script type="importmap">
+    {
+      "imports": {
+        "nipplejs": "https://esm.sh/nipplejs@0.10.1"
+      }
+    }
+    </script>
 </head>
-<body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#0b1220;color:#cbd5e1;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
-  <div style="text-align:center;padding:24px;max-width:520px;">
-    <h1 style="margin:0 0 8px;font-size:20px;">SDF Sandbox — Temporary Placeholder</h1>
-    <p style="margin:0 0 16px;opacity:0.9;">
-      This is a minimal placeholder index.html for the SDF Terrain Editor. The full app uses additional script and asset files (WebGL shaders, engine, and UI) which are not included here.
-    </p>
-    <p style="margin:0;font-size:13px;opacity:0.75;">Open the project in a development environment to run the complete application.</p>
-  </div>
+<body>
+    <canvas id="gl-canvas"></canvas>
+
+    <div id="loading-screen" class="overlay">
+        <div class="loader-content">
+            <h1>SDF Planet</h1>
+            <p id="loading-label">Booting...</p>
+            <div class="progress-bar">
+                <div id="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ui-root">
+        <div id="hud-top-left" class="hud-panel">
+            <div>FPS: <span id="fps-counter" class="mono">0</span></div>
+            <div>Edits: <span id="edit-counter" class="mono">0</span></div>
+            <div class="quality-selector">
+                <label>Quality:</label>
+                <select id="quality-select">
+                    <option value="0.35">Potato</option>
+                    <option value="0.5" selected>Low</option>
+                    <option value="0.75">Medium</option>
+                    <option value="1.0">High</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="crosshair"></div>
+
+        <div id="action-bar">
+            <!-- Buttons injected by ui.js -->
+        </div>
+
+        <div id="hint-panel" class="desktop-only">
+            <div>L-Click: <span class="emerald">add</span> · R-Click: <span class="rose">subtract</span></div>
+            <div>Scroll: distance · Hold <kbd>E</kbd> + Mouse: rotate</div>
+        </div>
+
+        <div id="click-to-play" class="overlay hidden">
+            <div class="modal">
+                <h2>Click to Play</h2>
+                <p>WASD to Move · Space/Shift for Alt</p>
+                <p>Mouse to Look · 1-4 for Shapes</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
