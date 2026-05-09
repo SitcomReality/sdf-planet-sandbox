@@ -39,6 +39,9 @@ const init = () => {
     const k = e.key.toLowerCase(); keys[k] = true;
     if (k >= "1" && k <= "4") hud.selectShape(parseInt(k)-1);
     if (k === " ") e.preventDefault();
+    if (e.key === "Escape" && !isPointerLocked) {
+      canvas.requestPointerLock();
+    }
   });
   window.addEventListener("keyup", (e) => keys[e.key.toLowerCase()] = false);
 
@@ -66,8 +69,18 @@ const init = () => {
 
   window.addEventListener("mousemove", (e) => {
     if (!isPointerLocked) return;
-    if (keys["e"]) engine.rotateGhost(e.movementX, e.movementY);
-    else engine.look(e.movementX, e.movementY);
+    if (keys["e"]) {
+      if (keys["shift"]) {
+        const scaleDelta = 1 - e.movementY * 0.01;
+        const minScale = 0.05, maxScale = 3.0;
+        engine.shapeSize = engine.shapeSize.map(s => Math.max(minScale, Math.min(maxScale, s * scaleDelta)));
+        engine.markDirty();
+      } else {
+        engine.rotateGhost(e.movementX, e.movementY);
+      }
+    } else {
+      engine.look(e.movementX, e.movementY);
+    }
   });
 
   window.addEventListener("wheel", (e) => {
