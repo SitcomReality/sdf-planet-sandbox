@@ -94,14 +94,29 @@ export class SdfEngine {
   ghostWorldQuat() { return quatMul(this.cameraQuat(), this.ghostUserQuat); }
 
   cameraQuat() {
-    const b = this.cameraBasis(), m = [b.right, b.up, b.fwd].flat();
-    const tr = m[0] + m[4] + m[8];
+    const b = this.cameraBasis();
+    // Create an orthonormal rotation matrix matching the view (Right, Up, -Forward)
+    const m00 = b.right[0], m10 = b.right[1], m20 = b.right[2];
+    const m01 = b.up[0],    m11 = b.up[1],    m21 = b.up[2];
+    const m02 = -b.fwd[0],  m12 = -b.fwd[1],  m22 = -b.fwd[2];
+    
+    const tr = m00 + m11 + m22;
     let q;
-    if (tr > 0) { const s = Math.sqrt(tr + 1.0) * 2; q = [(m[7] - m[5]) / s, (m[2] - m[6]) / s, (m[3] - m[1]) / s, 0.25 * s]; }
-    else if (m[0] > m[4] && m[0] > m[8]) { const s = Math.sqrt(1.0 + m[0] - m[4] - m[8]) * 2; q = [0.25 * s, (m[1] + m[3]) / s, (m[2] + m[6]) / s, (m[7] - m[5]) / s]; }
-    else if (m[4] > m[8]) { const s = Math.sqrt(1.0 + m[4] - m[0] - m[8]) * 2; q = [(m[1] + m[3]) / s, 0.25 * s, (m[5] + m[7]) / s, (m[2] - m[6]) / s]; }
-    else { const s = Math.sqrt(1.0 + m[8] - m[0] - m[4]) * 2; q = [(m[2] + m[6]) / s, (m[5] + m[7]) / s, 0.25 * s, (m[3] - m[1]) / s]; }
-    const l = Math.hypot(...q); return q.map(v => v/l);
+    if (tr > 0) {
+      const s = Math.sqrt(tr + 1.0) * 2;
+      q = [(m21 - m12) / s, (m02 - m20) / s, (m10 - m01) / s, 0.25 * s];
+    } else if ((m00 > m11) && (m00 > m22)) {
+      const s = Math.sqrt(1.0 + m00 - m11 - m22) * 2;
+      q = [0.25 * s, (m01 + m10) / s, (m02 + m20) / s, (m21 - m12) / s];
+    } else if (m11 > m22) {
+      const s = Math.sqrt(1.0 + m11 - m00 - m22) * 2;
+      q = [(m01 + m10) / s, 0.25 * s, (m12 + m21) / s, (m02 - m20) / s];
+    } else {
+      const s = Math.sqrt(1.0 + m22 - m00 - m11) * 2;
+      q = [(m02 + m20) / s, (m12 + m21) / s, 0.25 * s, (m10 - m01) / s];
+    }
+    const l = Math.hypot(...q);
+    return q.map(v => v / l);
   }
 
   cameraPosition() {
