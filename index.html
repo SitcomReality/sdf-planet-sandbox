@@ -53,14 +53,25 @@
         </div>
 
         <div id="click-to-play" class="overlay hidden">
-            <div class="modal">
+            <div class="modal controls-modal">
                 <h2>SDF Planet</h2>
-                <p>WASD: Move · Space/Shift: Up/Down</p>
-                <p>Mouse: Look · 1-4: Shapes · E: Modify</p>
-                <p style="margin-top:8px; opacity:0.9; font-size: 0.95em;">WASD: Move · Space/Shift: Up/Down · Mouse: Look · 1-4: Shapes · E: Modify</p>
-                <p style="margin-top:8px; opacity:0.9; font-size: 0.95em;">E + Mouse: rotate · E + Shift + Mouse: scale</p>
-                <p style="margin-top:8px; opacity:0.9; font-size: 0.95em;" class="emerald">Hold Q: Open menu (save/load/clear & color)</p>
-                <p style="margin-top:12px; opacity:0.8; font-size: 0.9em;" class="emerald">Click or press ESC to resume</p>
+                
+                <div class="controls-grid">
+                    <div class="control-row"><span class="key">WASD</span> <span class="action">Move</span></div>
+                    <div class="control-row"><span class="key">Space / Shift</span> <span class="action">Fly Up / Down</span></div>
+                    <div class="control-row"><span class="key">Mouse</span> <span class="action">Look Around</span></div>
+                    <div class="control-row"><span class="key">L-Click / R-Click</span> <span class="action">Add / Subtract</span></div>
+                    <div class="control-row"><span class="key">1 - 4</span> <span class="action">Select Shape</span></div>
+                    <div class="control-row"><span class="key">Scroll</span> <span class="action">Adjust Distance</span></div>
+                    <div class="control-row border-top"><span class="key">E + Mouse</span> <span class="action">Rotate Shape</span></div>
+                    <div class="control-row"><span class="key">E + Shift + Mouse</span> <span class="action">Scale Shape</span></div>
+                    <div class="control-row"><span class="key">E + Scroll</span> <span class="action">Uniform Scale</span></div>
+                    <div class="control-row border-top emerald-text"><span class="key">Hold Q</span> <span class="action">Open Menu</span></div>
+                </div>
+
+                <div class="modal-footer">
+                    <p class="emerald">Click anywhere or press <span class="key-inline">ESC</span> to resume</p>
+                </div>
             </div>
         </div>
 

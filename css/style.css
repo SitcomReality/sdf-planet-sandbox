@@ -163,10 +163,76 @@ select {
 .rose { color: var(--rose); }
 
 .modal {
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.85);
     padding: 32px;
-    border-radius: 12px;
+    border-radius: 16px;
     text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 1px solid var(--white-10);
+}
+
+.controls-modal {
+    min-width: 320px;
+}
+
+.controls-modal h2 {
+    margin-top: 0;
+    margin-bottom: 24px;
+    letter-spacing: 1px;
+    color: var(--emerald);
+}
+
+.controls-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.control-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 13px;
+}
+
+.control-row.border-top {
+    border-top: 1px solid var(--white-10);
+    margin-top: 4px;
+    padding-top: 12px;
+}
+
+.control-row .key {
+    background: var(--white-10);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #fff;
+    border: 1px solid var(--white-20);
+}
+
+.control-row .action {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.emerald-text .key {
+    border-color: var(--emerald);
+    color: var(--emerald);
+}
+
+.key-inline {
+    background: var(--white-20);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.modal-footer {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--white-10);
+    font-size: 14px;
 }
 
 .q-menu-panel {
