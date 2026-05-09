@@ -30,7 +30,7 @@ export class SdfEngine {
     this.spectrumMode = true;
     this.customColor = [0.78, 0.78, 0.78];
     this.smoothing = 0.15;
-    this.noiseStrength = 0.18;
+    this.noiseStrength = 0.0;
     this.noiseScale = 1.0;
     this.initGL();
   }

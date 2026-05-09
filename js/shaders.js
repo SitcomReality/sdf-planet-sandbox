@@ -67,14 +67,16 @@ float sdCylinder(vec3 p, float r, float h) {
 }
 
 float terrainNoise(vec3 p) {
-  vec3 n = normalize(p + 1e-5);
-  float a = sin(n.x * 4.0 * uNoiseScale + n.y * 5.3 * uNoiseScale) * cos(n.z * 4.7 * uNoiseScale);
-  float b = sin(n.x * 11.0 * uNoiseScale) * sin(n.y * 9.7 * uNoiseScale) * sin(n.z * 10.3 * uNoiseScale);
-  return (a * 0.18 + b * 0.06) * uNoiseStrength;
+  if (uNoiseStrength < 0.001) return 0.0;
+  vec3 n = (p + 1e-5) * 1.5 * uNoiseScale;
+  float a = sin(n.x) * sin(n.y) * sin(n.z);
+  float b = sin(n.x * 2.1 + 1.2) * sin(n.y * 1.8 + 0.5) * sin(n.z * 2.3 + 2.1);
+  float c = sin(n.x * 4.5) * sin(n.y * 4.2) * sin(n.z * 4.8);
+  return (a * 0.6 + b * 0.3 + c * 0.1) * uNoiseStrength;
 }
 
 float sdPlanet(vec3 p) {
-  return length(p) - (uPlanetRadius + terrainNoise(p));
+  return length(p) - uPlanetRadius;
 }
 
 void fetchEdit(int i, out vec4 a, out vec4 b, out vec4 c, out vec4 d) {
@@ -146,7 +148,8 @@ float mapGhost(vec3 p) {
 float mapAll(vec3 p) {
   float ds = mapSceneFull(p).d;
   float dg = mapGhost(p);
-  return min(ds, dg);
+  float d = min(ds, dg);
+  return d - terrainNoise(p);
 }
 vec3 calcNormal(vec3 p) {
   const float h = 0.01;
