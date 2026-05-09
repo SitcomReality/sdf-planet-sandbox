@@ -7,6 +7,7 @@ const keys = {};
 let lastT = performance.now();
 let fpsAcc = 0, fpsT = lastT;
 let isPointerLocked = false;
+let qMenuOpen = false;
 let moveStick = { x: 0, y: 0 };
 let lookStick = { x: 0, y: 0 };
 
@@ -40,6 +41,13 @@ const init = () => {
     if (k >= "1" && k <= "4") hud.selectShape(parseInt(k)-1);
     if (k === " ") e.preventDefault();
 
+    // Q menu handling
+    if (k === "q" && !qMenuOpen) {
+      qMenuOpen = true;
+      if (isPointerLocked) document.exitPointerLock();
+      hud.setQMenu(true);
+    }
+
     // Improved Escape handling:
     // - If pointer locked, exit pointer lock (show overlay).
     // - If not pointer locked and the overlay is hidden, request pointer lock (resume).
@@ -55,7 +63,19 @@ const init = () => {
       }
     }
   });
-  window.addEventListener("keyup", (e) => keys[e.key.toLowerCase()] = false);
+  window.addEventListener("keyup", (e) => {
+    const k = e.key.toLowerCase();
+    keys[k] = false;
+    
+    // Close Q menu when Q is released
+    if (k === "q" && qMenuOpen) {
+      qMenuOpen = false;
+      hud.setQMenu(false);
+      if (!hud.elements.playOverlay.classList.contains("hidden") === false) {
+        canvas.requestPointerLock();
+      }
+    }
+  });
 
   canvas.addEventListener("mousedown", (e) => {
     if (!isPointerLocked) {
@@ -80,7 +100,7 @@ const init = () => {
   });
 
   window.addEventListener("mousemove", (e) => {
-    if (!isPointerLocked) return;
+    if (!isPointerLocked || qMenuOpen) return;
     if (keys["e"]) {
       if (keys["shift"]) {
         const scaleDelta = 1 - e.movementY * 0.01;
@@ -96,7 +116,7 @@ const init = () => {
   });
 
   window.addEventListener("wheel", (e) => {
-    if (!isPointerLocked) return;
+    if (!isPointerLocked || qMenuOpen) return;
     e.preventDefault();
 
     // If E is held, scale the ghost/object; otherwise adjust ghost distance

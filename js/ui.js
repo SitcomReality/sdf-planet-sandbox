@@ -16,7 +16,16 @@ export class Hud {
       edits: document.getElementById("edit-counter"),
       quality: document.getElementById("quality-select"),
       actionBar: document.getElementById("action-bar"),
-      playOverlay: document.getElementById("click-to-play")
+      playOverlay: document.getElementById("click-to-play"),
+      qMenu: document.getElementById("q-menu"),
+      btnSave: document.getElementById("btn-save"),
+      btnLoad: document.getElementById("btn-load"),
+      btnClear: document.getElementById("btn-clear"),
+      toggleSpectrum: document.getElementById("toggle-spectrum"),
+      colorSliders: document.getElementById("color-sliders"),
+      sliderR: document.getElementById("slider-r"),
+      sliderG: document.getElementById("slider-g"),
+      sliderB: document.getElementById("slider-b")
     };
     this.init();
   }
@@ -37,6 +46,29 @@ export class Hud {
       this.engine.renderScale = parseFloat(e.target.value);
       this.engine.markDirty();
     };
+
+    // Q Menu handlers
+    this.elements.btnSave.onclick = () => this.engine.saveToStorage();
+    this.elements.btnLoad.onclick = () => this.engine.loadFromStorage();
+    this.elements.btnClear.onclick = () => {
+      if (confirm("Clear all edits?")) this.engine.clearScene();
+    };
+    
+    this.elements.toggleSpectrum.onchange = (e) => {
+      this.engine.spectrumMode = e.target.checked;
+      this.elements.colorSliders.classList.toggle("hidden", e.target.checked);
+    };
+
+    const updateCustomColor = () => {
+      this.engine.customColor = [
+        parseInt(this.elements.sliderR.value) / 255,
+        parseInt(this.elements.sliderG.value) / 255,
+        parseInt(this.elements.sliderB.value) / 255
+      ];
+    };
+    this.elements.sliderR.oninput = updateCustomColor;
+    this.elements.sliderG.oninput = updateCustomColor;
+    this.elements.sliderB.oninput = updateCustomColor;
   }
 
   updateProgress(label, frac) {
@@ -65,5 +97,9 @@ export class Hud {
 
   setPlayOverlay(visible) {
     this.elements.playOverlay.classList.toggle("hidden", !visible);
+  }
+
+  setQMenu(visible) {
+    this.elements.qMenu.classList.toggle("hidden", !visible);
   }
 }

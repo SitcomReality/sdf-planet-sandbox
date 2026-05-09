@@ -27,6 +27,8 @@ export class SdfEngine {
     this.ghostSubtractMode = false;
     this.hueCursor = 0.0;
     this.hueStep = 0.07;
+    this.spectrumMode = true;
+    this.customColor = [0.78, 0.78, 0.78];
     this.initGL();
   }
 
@@ -78,12 +80,47 @@ export class SdfEngine {
 
   performAction(subtract) {
     const pos = this.ghostWorldPos(), quat = this.ghostWorldQuat();
-    const color = subtract ? [0.78, 0.74, 0.66] : hsvToRgb(this.hueCursor, 0.85, 0.95);
+    let color;
+    if (subtract) {
+      color = [0.78, 0.74, 0.66];
+    } else {
+      color = this.spectrumMode ? hsvToRgb(this.hueCursor, 0.85, 0.95) : this.customColor;
+      if (this.spectrumMode) this.hueCursor = (this.hueCursor + this.hueStep) % 1.0;
+    }
     this.edits.push(makeEdit(this.selectedShape, pos, this.shapeSize.slice(), quat, subtract ? -1 : 1, color));
     if (this.edits.length > MAX_EDITS_TOTAL) this.edits.shift();
-    this.hueCursor = (this.hueCursor + this.hueStep) % 1.0;
     this.markDirty();
     return true;
+  }
+
+  saveToStorage() {
+    try {
+      localStorage.setItem("sdf_planet_edits", JSON.stringify(this.edits));
+      alert("Level saved!");
+    } catch(e) {
+      alert("Save failed: " + e.message);
+    }
+  }
+
+  loadFromStorage() {
+    try {
+      const data = localStorage.getItem("sdf_planet_edits");
+      if (data) {
+        this.edits = JSON.parse(data);
+        this.markDirty();
+        alert("Level loaded!");
+      } else {
+        alert("No saved level found.");
+      }
+    } catch(e) {
+      alert("Load failed: " + e.message);
+    }
+  }
+
+  clearScene() {
+    this.edits = [];
+    this.seedTerrain();
+    this.markDirty();
   }
 
   ghostWorldPos() {

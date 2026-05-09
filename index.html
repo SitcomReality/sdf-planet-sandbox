@@ -60,6 +60,34 @@
                 <p style="margin-top:20px; opacity:0.8; font-size: 0.9em;" class="emerald">Click or press ESC to resume</p>
             </div>
         </div>
+
+        <div id="q-menu" class="overlay hidden">
+            <div class="q-menu-panel">
+                <h3>Menu</h3>
+                
+                <div class="menu-section">
+                    <h4>Level</h4>
+                    <button id="btn-save">Save to Storage</button>
+                    <button id="btn-load">Load from Storage</button>
+                    <button id="btn-clear" class="danger">Clear Scene</button>
+                </div>
+
+                <div class="menu-section">
+                    <h4>Object Color</h4>
+                    <label class="toggle-label">
+                        <input type="checkbox" id="toggle-spectrum" checked>
+                        <span>Spectrum Cycling</span>
+                    </label>
+                    <div id="color-sliders" class="hidden">
+                        <label>Red: <input type="range" id="slider-r" min="0" max="255" value="200"></label>
+                        <label>Green: <input type="range" id="slider-g" min="0" max="255" value="200"></label>
+                        <label>Blue: <input type="range" id="slider-b" min="0" max="255" value="200"></label>
+                    </div>
+                </div>
+
+                <p class="hint">Hold Q to keep menu open</p>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="js/app.js"></script>

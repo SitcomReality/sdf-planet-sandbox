@@ -169,10 +169,107 @@ select {
     text-align: center;
 }
 
+.q-menu-panel {
+    background: rgba(0, 0, 0, 0.85);
+    padding: 24px;
+    border-radius: 12px;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.q-menu-panel h3 {
+    margin: 0 0 16px 0;
+    font-size: 20px;
+}
+
+.menu-section {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--white-10);
+}
+
+.menu-section:last-of-type {
+    border-bottom: none;
+}
+
+.menu-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.menu-section button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: var(--white-10);
+    border: 1px solid var(--white-20);
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+}
+
+.menu-section button:hover {
+    background: var(--white-20);
+}
+
+.menu-section button.danger {
+    background: rgba(251, 113, 133, 0.2);
+    border-color: var(--rose);
+}
+
+.menu-section button.danger:hover {
+    background: rgba(251, 113, 133, 0.3);
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    margin-bottom: 12px;
+}
+
+.toggle-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+#color-sliders {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#color-sliders label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+
+#color-sliders input[type="range"] {
+    flex: 1;
+    cursor: pointer;
+}
+
+.hint {
+    margin: 16px 0 0 0;
+    font-size: 11px;
+    opacity: 0.6;
+    text-align: center;
+}
+
 @media (max-width: 768px) {
     .desktop-only { display: none; }
     #action-bar { bottom: 12px; gap: 4px; }
     .shape-btn { width: 50px; height: 50px; }
+    .q-menu-panel { min-width: 280px; }
 }
 
 /* NippleJS styling */
