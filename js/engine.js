@@ -135,10 +135,19 @@ export class SdfEngine {
   move(f, s, u, dt) {
     if (f || s) {
       const b = this.cameraBasis(), p = this.cameraPosition();
-      const l = Math.hypot(...p), up = p.map(v => v/l);
+      const l = Math.hypot(...p), up1 = p.map(v => v/l);
+      
+      // Store horizontal look vector in world space before moving
+      const cp1 = Math.cos(this.player.lat), sp1 = Math.sin(this.player.lat);
+      const cl1 = Math.cos(this.player.lon), sl1 = Math.sin(this.player.lon);
+      const east1 = [-sl1, 0, cl1];
+      const north1 = [-sp1 * cl1, cp1, -sp1 * sl1];
+      const cy = Math.cos(this.player.yaw), sy = Math.sin(this.player.yaw);
+      const h1 = [north1[0]*cy + east1[0]*sy, north1[1]*cy + east1[1]*sy, north1[2]*cy + east1[2]*sy];
+
       const proj = v => { 
-        const d = v[0]*up[0] + v[1]*up[1] + v[2]*up[2]; 
-        return [v[0] - up[0]*d, v[1] - up[1]*d, v[2] - up[2]*d]; 
+        const d = v[0]*up1[0] + v[1]*up1[1] + v[2]*up1[2]; 
+        return [v[0] - up1[0]*d, v[1] - up1[1]*d, v[2] - up1[2]*d]; 
       };
       
       const ft = proj(b.fwd), rt = proj(b.right);
@@ -149,12 +158,31 @@ export class SdfEngine {
       const mv = [ fDir[0]*f + rDir[0]*s, fDir[1]*f + rDir[1]*s, fDir[2]*f + rDir[2]*s ];
       const mvl = Math.hypot(...mv);
       if (mvl > 1e-4) {
-        const r = PLANET_RADIUS + this.player.altitude, dist = 2.5 * dt;
+        const dist = 2.5 * dt;
         const np = [ p[0] + mv[0] * dist, p[1] + mv[1] * dist, p[2] + mv[2] * dist ];
         const nl = Math.hypot(...np);
-        // Clamp latitude to slightly less than 90 degrees to avoid gimbal lock/singularities
+        
+        // Update position
         this.player.lat = Math.asin(Math.max(-0.9995, Math.min(0.9995, np[1]/nl)));
         this.player.lon = Math.atan2(np[2]/nl, np[0]/nl);
+
+        // Parallel Transport: Adjust yaw so look direction stays consistent in world space
+        const cp2 = Math.cos(this.player.lat), sp2 = Math.sin(this.player.lat);
+        const cl2 = Math.cos(this.player.lon), sl2 = Math.sin(this.player.lon);
+        const up2 = [cp2 * cl2, sp2, cp2 * sl2];
+        const east2 = [-sl2, 0, cl2];
+        const north2 = [-sp2 * cl2, cp2, -sp2 * sl2];
+        
+        const dot = h1[0]*up2[0] + h1[1]*up2[1] + h1[2]*up2[2];
+        const h2 = [h1[0] - up2[0]*dot, h1[1] - up2[1]*dot, h1[2] - up2[2]*dot];
+        const h2l = Math.hypot(...h2);
+        if (h2l > 1e-6) {
+          const h2n = h2.map(v => v/h2l);
+          const cosY = north2[0]*h2n[0] + north2[1]*h2n[1] + north2[2]*h2n[2];
+          const cross = [north2[1]*h2n[2]-north2[2]*h2n[1], north2[2]*h2n[0]-north2[0]*h2n[2], north2[0]*h2n[1]-north2[1]*h2n[0]];
+          const sinY = cross[0]*up2[0] + cross[1]*up2[1] + cross[2]*up2[2];
+          this.player.yaw = Math.atan2(sinY, cosY);
+        }
         this.markDirty();
       }
     }
