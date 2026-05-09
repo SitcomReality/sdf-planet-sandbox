@@ -288,17 +288,21 @@ select {
     letter-spacing: 0.5px;
 }
 
+.button-row {
+    display: flex;
+    gap: 8px;
+}
+
 .menu-section button {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 8px;
+    flex: 1;
+    padding: 8px;
     background: var(--white-10);
     border: 1px solid var(--white-20);
     border-radius: 6px;
     color: white;
     cursor: pointer;
     transition: all 0.2s;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .menu-section button:hover {

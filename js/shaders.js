@@ -24,6 +24,9 @@ uniform int   uEditCount;
 uniform int   uEditTexWidth;
 uniform float uTime;
 uniform vec3  uSunDir;
+uniform float uSmoothing;
+uniform float uNoiseStrength;
+uniform float uNoiseScale;
 
 uniform int   uGhostKind;
 uniform vec3  uGhostPos;
@@ -65,9 +68,9 @@ float sdCylinder(vec3 p, float r, float h) {
 
 float terrainNoise(vec3 p) {
   vec3 n = normalize(p + 1e-5);
-  float a = sin(n.x * 4.0 + n.y * 5.3) * cos(n.z * 4.7);
-  float b = sin(n.x * 11.0) * sin(n.y * 9.7) * sin(n.z * 10.3);
-  return a * 0.18 + b * 0.06;
+  float a = sin(n.x * 4.0 * uNoiseScale + n.y * 5.3 * uNoiseScale) * cos(n.z * 4.7 * uNoiseScale);
+  float b = sin(n.x * 11.0 * uNoiseScale) * sin(n.y * 9.7 * uNoiseScale) * sin(n.z * 10.3 * uNoiseScale);
+  return (a * 0.18 + b * 0.06) * uNoiseStrength;
 }
 
 float sdPlanet(vec3 p) {
@@ -102,8 +105,8 @@ Scene mapSceneFull(vec3 p) {
   float d = sdPlanet(p);
   vec3  col = planetColorBase(p);
   float planetW = 1.0;
-  const float K_ADD = 0.15;
-  const float K_SUB = 0.20;
+  float K_ADD = uSmoothing;
+  float K_SUB = uSmoothing * 1.33;
   for (int i = 0; i < 96; i++) {
     if (i >= uEditCount) break;
     vec4 a, b, c, dd; fetchEdit(i, a, b, c, dd);

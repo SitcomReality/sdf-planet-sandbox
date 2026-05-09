@@ -25,7 +25,13 @@ export class Hud {
       colorSliders: document.getElementById("color-sliders"),
       sliderR: document.getElementById("slider-r"),
       sliderG: document.getElementById("slider-g"),
-      sliderB: document.getElementById("slider-b")
+      sliderB: document.getElementById("slider-b"),
+      sliderDimX: document.getElementById("slider-dim-x"),
+      sliderDimY: document.getElementById("slider-dim-y"),
+      sliderDimZ: document.getElementById("slider-dim-z"),
+      sliderSmoothing: document.getElementById("slider-smoothing"),
+      sliderNoiseStr: document.getElementById("slider-noise-str"),
+      sliderNoiseScale: document.getElementById("slider-noise-scale")
     };
     this.init();
   }
@@ -69,6 +75,34 @@ export class Hud {
     this.elements.sliderR.oninput = updateCustomColor;
     this.elements.sliderG.oninput = updateCustomColor;
     this.elements.sliderB.oninput = updateCustomColor;
+
+    // Shape dimension controls
+    this.elements.sliderDimX.oninput = () => {
+      this.engine.shapeSize[0] = parseFloat(this.elements.sliderDimX.value);
+      this.engine.markDirty();
+    };
+    this.elements.sliderDimY.oninput = () => {
+      this.engine.shapeSize[1] = parseFloat(this.elements.sliderDimY.value);
+      this.engine.markDirty();
+    };
+    this.elements.sliderDimZ.oninput = () => {
+      this.engine.shapeSize[2] = parseFloat(this.elements.sliderDimZ.value);
+      this.engine.markDirty();
+    };
+
+    // Blending & terrain controls
+    this.elements.sliderSmoothing.oninput = () => {
+      this.engine.smoothing = parseFloat(this.elements.sliderSmoothing.value);
+      this.engine.markDirty();
+    };
+    this.elements.sliderNoiseStr.oninput = () => {
+      this.engine.noiseStrength = parseFloat(this.elements.sliderNoiseStr.value);
+      this.engine.markDirty();
+    };
+    this.elements.sliderNoiseScale.oninput = () => {
+      this.engine.noiseScale = parseFloat(this.elements.sliderNoiseScale.value);
+      this.engine.markDirty();
+    };
   }
 
   updateProgress(label, frac) {
@@ -96,6 +130,11 @@ export class Hud {
     else if (kind === 1) this.engine.shapeSize = [0.5, 0.5, 0.5];
     else if (kind === 2) this.engine.shapeSize = [0.6, 0.18, 0.0];
     else this.engine.shapeSize = [0.4, 0.6, 0.0];
+    
+    // Update dimension sliders to match
+    this.elements.sliderDimX.value = this.engine.shapeSize[0];
+    this.elements.sliderDimY.value = this.engine.shapeSize[1];
+    this.elements.sliderDimZ.value = this.engine.shapeSize[2];
     
     Array.from(this.elements.actionBar.children).forEach((btn, i) => {
       btn.classList.toggle("active", i === kind);

@@ -82,9 +82,11 @@
                 
                 <div class="menu-section">
                     <h4>Level</h4>
-                    <button id="btn-save">Save to Storage</button>
-                    <button id="btn-load">Load from Storage</button>
-                    <button id="btn-clear" class="danger">Clear Scene</button>
+                    <div class="button-row">
+                        <button id="btn-save">Save</button>
+                        <button id="btn-load">Load</button>
+                        <button id="btn-clear" class="danger">Clear</button>
+                    </div>
                 </div>
 
                 <div class="menu-section">
@@ -98,6 +100,20 @@
                         <label>Green: <input type="range" id="slider-g" min="0" max="255" value="200"></label>
                         <label>Blue: <input type="range" id="slider-b" min="0" max="255" value="200"></label>
                     </div>
+                </div>
+
+                <div class="menu-section">
+                    <h4>Shape Dimensions</h4>
+                    <label>X: <input type="range" id="slider-dim-x" min="0.1" max="3" step="0.05" value="0.6"></label>
+                    <label>Y: <input type="range" id="slider-dim-y" min="0.1" max="3" step="0.05" value="0.6"></label>
+                    <label>Z: <input type="range" id="slider-dim-z" min="0.1" max="3" step="0.05" value="0.6"></label>
+                </div>
+
+                <div class="menu-section">
+                    <h4>Blending & Terrain</h4>
+                    <label>Smoothing: <input type="range" id="slider-smoothing" min="0" max="0.5" step="0.01" value="0.15"></label>
+                    <label>Noise Strength: <input type="range" id="slider-noise-str" min="0" max="0.5" step="0.01" value="0.18"></label>
+                    <label>Noise Scale: <input type="range" id="slider-noise-scale" min="0.1" max="3" step="0.1" value="1.0"></label>
                 </div>
 
                 <p class="hint">Hold Q to keep menu open</p>

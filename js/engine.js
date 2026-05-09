@@ -29,6 +29,9 @@ export class SdfEngine {
     this.hueStep = 0.07;
     this.spectrumMode = true;
     this.customColor = [0.78, 0.78, 0.78];
+    this.smoothing = 0.15;
+    this.noiseStrength = 0.18;
+    this.noiseScale = 1.0;
     this.initGL();
   }
 
@@ -37,7 +40,7 @@ export class SdfEngine {
     this.prog = this.compile(VERT_SRC, FRAG_SRC);
     gl.useProgram(this.prog);
     this.uniforms = {};
-    ["uResolution", "uCamPos", "uCamRot", "uFovScale", "uPlanetRadius", "uWorldRadius", "uEdits", "uEditCount", "uEditTexWidth", "uTime", "uSunDir", "uGhostKind", "uGhostPos", "uGhostSize", "uGhostQuat", "uGhostOp"]
+    ["uResolution", "uCamPos", "uCamRot", "uFovScale", "uPlanetRadius", "uWorldRadius", "uEdits", "uEditCount", "uEditTexWidth", "uTime", "uSunDir", "uGhostKind", "uGhostPos", "uGhostSize", "uGhostQuat", "uGhostOp", "uSmoothing", "uNoiseStrength", "uNoiseScale"]
     .forEach(n => this.uniforms[n] = gl.getUniformLocation(this.prog, n));
     this.vao = gl.createVertexArray();
     this.editsTex = gl.createTexture();
@@ -281,6 +284,8 @@ export class SdfEngine {
     gl.uniform3f(this.uniforms.uSunDir, 0.5, 0.7, 0.5); gl.uniform1i(this.uniforms.uGhostKind, this.selectedShape);
     gl.uniform3fv(this.uniforms.uGhostPos, this.ghostWorldPos()); gl.uniform3fv(this.uniforms.uGhostSize, this.shapeSize);
     gl.uniform4fv(this.uniforms.uGhostQuat, this.ghostWorldQuat()); gl.uniform1f(this.uniforms.uGhostOp, this.ghostSubtractMode ? -1 : 1);
+    gl.uniform1f(this.uniforms.uSmoothing, this.smoothing); gl.uniform1f(this.uniforms.uNoiseStrength, this.noiseStrength);
+    gl.uniform1f(this.uniforms.uNoiseScale, this.noiseScale);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.editsTex); gl.uniform1i(this.uniforms.uEdits, 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, fw, fh); gl.useProgram(this.blitProg);
