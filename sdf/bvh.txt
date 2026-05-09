@@ -1,0 +1,96 @@
+// A tiny, allocation-light AABB BVH over SDF edits.
+// Used for:
+//   (a) Evaluation culling — when the GPU asks "what edits matter near point P?",
+//       we walk the tree CPU-side once per frame to gather only edits whose AABB
+//       (expanded by the query radius) contains the camera frustum / region of
+//       interest. Those edits then get packed into a small data texture.
+//   (b) Invalidation — when a new edit is committed, we mark the renderer dirty
+//       and could in a fuller implementation re-evaluate only overlapping bricks.
+//
+// We keep this intentionally simple: a flat list rebuilt on edit commit. With an
+// LRU cap of MAX_EDITS this stays O(N) tiny and avoids GC churn entirely.
+
+export type ShapeKind = 0 | 1 | 2 | 3; // sphere | cube | torus | cylinder
+
+export interface Edit {
+  kind: ShapeKind;
+  // Position in world space (planet center is origin).
+  px: number; py: number; pz: number;
+  // Size parameters (interpretation depends on kind).
+  // sphere: sx=radius
+  // cube:   sx,sy,sz=half-extents
+  // torus:  sx=major radius, sy=minor radius
+  // cylinder: sx=radius, sy=half-height
+  sx: number; sy: number; sz: number;
+  // Rotation as quaternion (xyzw).
+  qx: number; qy: number; qz: number; qw: number;
+  // +1 = additive, -1 = subtractive.
+  op: 1 | -1;
+  // RGB color for additive edits (ignored for subtracts but stored anyway).
+  cr: number; cg: number; cb: number;
+  // Cached AABB (computed at insert time).
+  aabbMin: [number, number, number];
+  aabbMax: [number, number, number];
+}
+
+export function makeEdit(
+  kind: ShapeKind,
+  pos: [number, number, number],
+  size: [number, number, number],
+  quat: [number, number, number, number],
+  op: 1 | -1,
+  color: [number, number, number] = [0.78, 0.74, 0.66]
+): Edit {
+  const r =
+    kind === 2
+      ? size[0] + size[1]
+      : Math.max(size[0], size[1], size[2]) * 1.05;
+  return {
+    kind,
+    px: pos[0], py: pos[1], pz: pos[2],
+    sx: size[0], sy: size[1], sz: size[2],
+    qx: quat[0], qy: quat[1], qz: quat[2], qw: quat[3],
+    op,
+    cr: color[0], cg: color[1], cb: color[2],
+    aabbMin: [pos[0] - r, pos[1] - r, pos[2] - r],
+    aabbMax: [pos[0] + r, pos[1] + r, pos[2] + r],
+  };
+}
+
+// HSV (h in [0,1)) -> RGB. Standard cheap formula.
+export function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
+  const i = Math.floor(h * 6);
+  const f = h * 6 - i;
+  const p = v * (1 - s);
+  const q = v * (1 - f * s);
+  const t = v * (1 - (1 - f) * s);
+  switch (i % 6) {
+    case 0: return [v, t, p];
+    case 1: return [q, v, p];
+    case 2: return [p, v, t];
+    case 3: return [p, q, v];
+    case 4: return [t, p, v];
+    default: return [v, p, q];
+  }
+}
+
+// Cull edits to those whose AABB intersects a sphere of the given radius
+// around the camera. This is the "evaluation culling" step — we only ship
+// the relevant edits to the GPU each frame.
+export function cullEditsToSphere(
+  edits: Edit[],
+  cx: number, cy: number, cz: number,
+  radius: number
+): Edit[] {
+  const r2 = radius * radius;
+  const out: Edit[] = [];
+  for (let i = 0; i < edits.length; i++) {
+    const e = edits[i];
+    // Closest point on AABB to sphere center.
+    const dx = Math.max(e.aabbMin[0] - cx, 0, cx - e.aabbMax[0]);
+    const dy = Math.max(e.aabbMin[1] - cy, 0, cy - e.aabbMax[1]);
+    const dz = Math.max(e.aabbMin[2] - cz, 0, cz - e.aabbMax[2]);
+    if (dx * dx + dy * dy + dz * dz <= r2) out.push(e);
+  }
+  return out;
+}
