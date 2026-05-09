@@ -45,6 +45,7 @@ const init = () => {
     if (k === "q" && !qMenuOpen) {
       qMenuOpen = true;
       if (isPointerLocked) document.exitPointerLock();
+      hud.setPlayOverlay(false); // Hide play prompt when menu is up
       hud.setQMenu(true);
     }
 
@@ -137,7 +138,18 @@ const init = () => {
 
   document.addEventListener("pointerlockchange", () => {
     isPointerLocked = document.pointerLockElement === canvas;
-    hud.setPlayOverlay(!isPointerLocked);
+    // Don't show play overlay if we're explicitly in the Q menu
+    if (!qMenuOpen) {
+      hud.setPlayOverlay(!isPointerLocked);
+    }
+  });
+
+  // Make the entire play overlay clickable to resume
+  hud.elements.playOverlay.addEventListener("mousedown", (e) => {
+    // If we're clicking the modal or the background, try to lock
+    if (!qMenuOpen) {
+      canvas.requestPointerLock();
+    }
   });
 
   document.addEventListener("contextmenu", e => e.preventDefault());

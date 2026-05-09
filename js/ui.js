@@ -74,7 +74,15 @@ export class Hud {
   updateProgress(label, frac) {
     this.elements.label.textContent = label;
     this.elements.fill.style.width = `${frac * 100}%`;
-    if (frac >= 1) setTimeout(() => this.elements.screen.classList.add("hidden"), 500);
+    if (frac >= 1) {
+      setTimeout(() => {
+        this.elements.screen.classList.add("hidden");
+        // Only show play overlay if pointer isn't already locked
+        if (!document.pointerLockElement) {
+          this.setPlayOverlay(true);
+        }
+      }, 500);
+    }
   }
 
   updateStats(fps, edits) {

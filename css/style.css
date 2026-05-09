@@ -47,6 +47,10 @@ canvas {
     pointer-events: none;
 }
 
+#loading-screen {
+    z-index: 200;
+}
+
 .loader-content {
     text-align: center;
     width: 280px;
@@ -219,6 +223,24 @@ select {
 .emerald-text .key {
     border-color: var(--emerald);
     color: var(--emerald);
+}
+
+.primary-btn {
+    background: var(--emerald) !important;
+    color: var(--bg-dark) !important;
+    font-weight: bold;
+    border: none !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    cursor: pointer;
+    margin-bottom: 12px;
+    font-size: 15px;
+    width: 100%;
+    transition: transform 0.1s;
+}
+
+.primary-btn:active {
+    transform: scale(0.98);
 }
 
 .key-inline {
