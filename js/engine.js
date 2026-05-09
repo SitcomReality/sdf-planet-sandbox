@@ -110,32 +110,53 @@ export class SdfEngine {
   }
 
   cameraBasis() {
-    const p = this.cameraPosition(), l = Math.hypot(...p), upR = p.map(v => v/l);
-    let ref = [0, 1, 0]; if (Math.abs(upR[1]) > 0.9) ref = [0, 0, 1];
+    const { lon, lat, yaw, pitch } = this.player;
+    const cp = Math.cos(lat), sp = Math.sin(lat), cl = Math.cos(lon), sl = Math.sin(lon);
+    
+    // Stable basis derived from spherical coordinates to avoid snapping at poles
+    const upR = [cp * cl, sp, cp * sl];
+    const east = [-sl, 0, cl];
+    const north = [-sp * cl, cp, -sp * sl];
+    
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp_look = Math.cos(pitch), sp_look = Math.sin(pitch);
+    const h = [north[0]*cy + east[0]*sy, north[1]*cy + east[1]*sy, north[2]*cy + east[2]*sy];
+    const fwd = [h[0]*cp_look + upR[0]*sp_look, h[1]*cp_look + upR[1]*sp_look, h[2]*cp_look + upR[2]*sp_look];
+    
     const cross = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
-    const east = cross(upR, ref), el = Math.hypot(...east), e = east.map(v => v/el);
-    const north = cross(e, upR);
-    const cy = Math.cos(this.player.yaw), sy = Math.sin(this.player.yaw), cp = Math.cos(this.player.pitch), sp = Math.sin(this.player.pitch);
-    const h = [north[0]*cy+e[0]*sy, north[1]*cy+e[1]*sy, north[2]*cy+e[2]*sy];
-    const fwd = [h[0]*cp+upR[0]*sp, h[1]*cp+upR[1]*sp, h[2]*cp+upR[2]*sp];
-    const right = cross(fwd, upR), rl = Math.hypot(...right), r = right.map(v => v/rl);
-    return { right: r, up: cross(r, fwd), fwd };
+    const right = cross(fwd, upR);
+    const rl = Math.hypot(...right);
+    const r_vec = rl > 1e-5 ? right.map(v => v/rl) : east;
+    
+    return { right: r_vec, up: cross(r_vec, fwd), fwd };
   }
 
   cameraForward() { return this.cameraBasis().fwd; }
 
   move(f, s, u, dt) {
     if (f || s) {
-      const b = this.cameraBasis(), p = this.cameraPosition(), l = Math.hypot(...p), up = p.map(v => v/l);
-      const proj = v => { const d = v[0]*up[0]+v[1]*up[1]+v[2]*up[2]; return [v[0]-up[0]*d, v[1]-up[1]*d, v[2]-up[2]*d]; };
-      const ft = proj(b.fwd), rt = proj(b.right), ftl = Math.hypot(...ft), rtl = Math.hypot(...rt);
-      const mv = [ (ft[0]/ftl)*f + (rt[0]/rtl)*s, (ft[1]/ftl)*f + (rt[1]/rtl)*s, (ft[2]/ftl)*f + (rt[2]/rtl)*s ];
-      const mvl = Math.hypot(...mv), r = PLANET_RADIUS + this.player.altitude, ang = (2.5 * dt) / r;
-      const np = [ p[0] + (mv[0]/mvl)*ang*r, p[1] + (mv[1]/mvl)*ang*r, p[2] + (mv[2]/mvl)*ang*r ];
-      const nl = Math.hypot(...np);
-      this.player.lat = Math.asin(Math.max(-1, Math.min(1, np[1]/nl)));
-      this.player.lon = Math.atan2(np[2]/nl, np[0]/nl);
-      this.markDirty();
+      const b = this.cameraBasis(), p = this.cameraPosition();
+      const l = Math.hypot(...p), up = p.map(v => v/l);
+      const proj = v => { 
+        const d = v[0]*up[0] + v[1]*up[1] + v[2]*up[2]; 
+        return [v[0] - up[0]*d, v[1] - up[1]*d, v[2] - up[2]*d]; 
+      };
+      
+      const ft = proj(b.fwd), rt = proj(b.right);
+      const ftl = Math.hypot(...ft), rtl = Math.hypot(...rt);
+      const fDir = ftl > 1e-4 ? ft.map(v => v/ftl) : [0,0,0];
+      const rDir = rtl > 1e-4 ? rt.map(v => v/rtl) : [0,0,0];
+      
+      const mv = [ fDir[0]*f + rDir[0]*s, fDir[1]*f + rDir[1]*s, fDir[2]*f + rDir[2]*s ];
+      const mvl = Math.hypot(...mv);
+      if (mvl > 1e-4) {
+        const r = PLANET_RADIUS + this.player.altitude, dist = 2.5 * dt;
+        const np = [ p[0] + mv[0] * dist, p[1] + mv[1] * dist, p[2] + mv[2] * dist ];
+        const nl = Math.hypot(...np);
+        // Clamp latitude to slightly less than 90 degrees to avoid gimbal lock/singularities
+        this.player.lat = Math.asin(Math.max(-0.9995, Math.min(0.9995, np[1]/nl)));
+        this.player.lon = Math.atan2(np[2]/nl, np[0]/nl);
+        this.markDirty();
+      }
     }
     if (u) { this.player.altitude = Math.max(0.5, Math.min(8, this.player.altitude + u * 3 * dt)); this.markDirty(); }
   }
