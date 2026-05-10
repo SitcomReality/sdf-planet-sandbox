@@ -168,6 +168,32 @@ vec2 raySphere(vec3 ro, vec3 rd, float R) {
   h = sqrt(h); return vec2(-b - h, -b + h);
 }
 
+vec3 getSkyColor(vec3 rd, vec3 sunDir) {
+  // Determine if we're on day or night side
+  float sunDot = dot(rd, sunDir);
+  float dayness = smoothstep(-0.2, 0.2, sunDir.y);
+  
+  // Day sky
+  vec3 daySky = mix(vec3(0.55, 0.72, 0.95), vec3(0.18, 0.32, 0.62), clamp(rd.y * 0.5 + 0.5, 0.0, 1.0));
+  daySky += vec3(1.0, 0.95, 0.85) * smoothstep(0.997, 0.9995, sunDot);
+  
+  // Night sky - darker blue
+  vec3 nightSky = mix(vec3(0.02, 0.03, 0.08), vec3(0.01, 0.02, 0.05), clamp(rd.y * 0.5 + 0.5, 0.0, 1.0));
+  
+  // Add stars to night sky
+  vec3 starRd = rd * 100.0;
+  float star = 0.0;
+  float noise1 = fract(sin(dot(floor(starRd.xy * 10.0), vec2(12.9898, 78.233))) * 43758.5453);
+  float noise2 = fract(sin(dot(floor(starRd.yz * 10.0), vec2(12.9898, 78.233))) * 43758.5453);
+  if (noise1 > 0.995 && noise2 > 0.99) {
+    star = smoothstep(0.995, 1.0, noise1) * (1.0 - dayness);
+  }
+  nightSky += vec3(star);
+  
+  // Blend day and night
+  return mix(nightSky, daySky, dayness);
+}
+
 void main() {
   vec2 uv = (vUv * 2.0 - 1.0);
   uv.x *= uResolution.x / uResolution.y;
@@ -175,9 +201,8 @@ void main() {
   vec3 ro = uCamPos;
   vec2 hit = raySphere(ro, rd, uWorldRadius);
   if (hit.y < 0.0) {
-    vec3 sky = mix(vec3(0.55, 0.72, 0.95), vec3(0.18, 0.32, 0.62), clamp(rd.y * 0.5 + 0.5, 0.0, 1.0));
-    sky += vec3(1.0, 0.95, 0.85) * smoothstep(0.997, 0.9995, dot(rd, uSunDir));
-    fragColor = vec4(sky, 1.0); return;
+    fragColor = vec4(getSkyColor(rd, uSunDir), 1.0);
+    return;
   }
   float t = max(hit.x, 0.0);
   if (uGhostKind >= 0) t = 0.0;
@@ -192,9 +217,8 @@ void main() {
     if (t > tMax) break;
   }
   if (!hitSurface) {
-    vec3 sky = mix(vec3(0.55, 0.72, 0.95), vec3(0.18, 0.32, 0.62), clamp(rd.y * 0.5 + 0.5, 0.0, 1.0));
-    sky += vec3(1.0, 0.95, 0.85) * smoothstep(0.997, 0.9995, dot(rd, uSunDir));
-    fragColor = vec4(sky, 1.0); return;
+    fragColor = vec4(getSkyColor(rd, uSunDir), 1.0);
+    return;
   }
   vec3 n = calcNormal(p);
   Scene sceneRes = mapSceneFull(p);
@@ -209,9 +233,15 @@ void main() {
     float steep = 1.0 - clamp(dot(n, normalize(p)), 0.0, 1.0);
     base = mix(base, vec3(0.45, 0.42, 0.40), smoothstep(0.4, 0.8, steep) * sceneRes.w);
   }
+  
+  // Lighting varies with sun position (day/night)
+  float dayness = smoothstep(-0.2, 0.2, uSunDir.y);
   float diff = max(dot(n, uSunDir), 0.0);
-  float amb = 0.35 + 0.25 * (n.y * 0.5 + 0.5);
-  vec3 col = base * (amb + diff * 0.7);
-  vec3 sky = mix(vec3(0.55, 0.72, 0.95), vec3(0.18, 0.32, 0.62), clamp(rd.y * 0.5 + 0.5, 0.0, 1.0));
-  fragColor = vec4(mix(col, sky, 1.0 - exp(-t * 0.012)), 1.0);
+  float amb = mix(0.15, 0.35, dayness) + 0.25 * (n.y * 0.5 + 0.5);
+  vec3 col = base * (amb + diff * 0.7 * dayness);
+  
+  // Distance fog with sky color
+  vec3 sky = getSkyColor(rd, uSunDir);
+  float fogFactor = 1.0 - exp(-t * 0.025);
+  fragColor = vec4(mix(col, sky, fogFactor), 1.0);
 }`;
