@@ -21,6 +21,7 @@ export class Hud {
       btnSave: document.getElementById("btn-save"),
       btnLoad: document.getElementById("btn-load"),
       btnClear: document.getElementById("btn-clear"),
+      toggleSeedSpheres: document.getElementById("toggle-seed-spheres"),
       toggleSpectrum: document.getElementById("toggle-spectrum"),
       colorSliders: document.getElementById("color-sliders"),
       sliderR: document.getElementById("slider-r"),
@@ -57,7 +58,7 @@ export class Hud {
     this.elements.btnSave.onclick = () => this.engine.saveToStorage();
     this.elements.btnLoad.onclick = () => this.engine.loadFromStorage();
     this.elements.btnClear.onclick = () => {
-      if (confirm("Clear all edits?")) this.engine.clearScene();
+      if (confirm("Restart scene?")) this.engine.clearScene(this.elements.toggleSeedSpheres.checked);
     };
     
     this.elements.toggleSpectrum.onchange = (e) => {

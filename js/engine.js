@@ -68,14 +68,14 @@ export class SdfEngine {
     return p;
   }
 
-  seedTerrain() {
-    this.callbacks.onLoadingProgress?.("Seeding planet...", 0.5);
+  seedTerrain(silent = false) {
+    if (!silent) this.callbacks.onLoadingProgress?.("Seeding planet...", 0.5);
     for (let i = 0; i < 12; i++) {
       const lon = i * 1.5, lat = Math.sin(i) * 0.8, r = PLANET_RADIUS + 0.1;
       const cl = Math.cos(lat);
       this.edits.push(makeEdit(0, [Math.cos(lon)*cl*r, Math.sin(lat)*r, Math.sin(lon)*cl*r], [0.3, 0.3, 0.3], quatIdentity(), 1));
     }
-    this.callbacks.onLoadingProgress?.("Ready", 1.0);
+    if (!silent) this.callbacks.onLoadingProgress?.("Ready", 1.0);
     this.markDirty();
   }
 
@@ -120,9 +120,9 @@ export class SdfEngine {
     }
   }
 
-  clearScene() {
+  clearScene(seed = true) {
     this.edits = [];
-    this.seedTerrain();
+    if (seed) this.seedTerrain(true);
     this.markDirty();
   }
 
