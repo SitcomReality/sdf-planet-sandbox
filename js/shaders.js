@@ -168,74 +168,6 @@ vec2 raySphere(vec3 ro, vec3 rd, float R) {
   h = sqrt(h); return vec2(-b - h, -b + h);
 }
 
-float hash(vec3 p) {
-  p = fract(p * 0.3183099 + 0.1);
-  p *= 17.0;
-  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
-}
-
-float stars(vec3 rd) {
-  vec3 c = rd * 200.0;
-  vec3 id = floor(c);
-  vec3 f = fract(c);
-  float m = 0.0;
-  for(int x = -1; x <= 1; x++) {
-    for(int y = -1; y <= 1; y++) {
-      for(int z = -1; z <= 1; z++) {
-        vec3 offset = vec3(x, y, z);
-        float h = hash(id + offset);
-        if(h > 0.97) {
-          vec3 pos = offset + vec3(hash(id + offset + 1.0), hash(id + offset + 2.0), hash(id + offset + 3.0)) - f;
-          float d = length(pos);
-          if(d < 0.15) m = max(m, (0.15 - d) / 0.15);
-        }
-      }
-    }
-  }
-  return m;
-}
-
-vec3 renderSky(vec3 rd, vec3 sunDir, bool atBoundary) {
-  float sunDot = dot(rd, sunDir);
-  float dayness = max(0.0, sunDir.y);
-  
-  // Day sky colors
-  vec3 dayZenith = vec3(0.3, 0.5, 0.95);
-  vec3 dayHorizon = vec3(0.6, 0.75, 0.95);
-  vec3 daySky = mix(dayHorizon, dayZenith, clamp(rd.y * 0.7 + 0.3, 0.0, 1.0));
-  
-  // Night sky colors
-  vec3 nightZenith = vec3(0.01, 0.02, 0.05);
-  vec3 nightHorizon = vec3(0.05, 0.08, 0.15);
-  vec3 nightSky = mix(nightHorizon, nightZenith, clamp(rd.y * 0.7 + 0.3, 0.0, 1.0));
-  
-  // Mix day and night
-  vec3 sky = mix(nightSky, daySky, smoothstep(-0.15, 0.15, dayness));
-  
-  // Sun
-  sky += vec3(1.0, 0.9, 0.8) * pow(max(0.0, sunDot), 150.0) * 3.0;
-  sky += vec3(1.0, 0.95, 0.85) * smoothstep(0.997, 0.9995, sunDot) * dayness;
-  
-  // Sunset/sunrise glow
-  float horizonGlow = smoothstep(0.92, 0.98, sunDot) * (1.0 - abs(rd.y));
-  sky += vec3(1.0, 0.5, 0.2) * horizonGlow * smoothstep(-0.3, 0.1, sunDir.y);
-  
-  // Stars on night side
-  float starBrightness = stars(rd) * smoothstep(0.3, -0.1, dayness);
-  sky += vec3(1.0, 0.95, 0.9) * starBrightness;
-  
-  // Atmospheric boundary clouds (only at rendering boundary)
-  if(atBoundary) {
-    float cloudNoise = sin(rd.x * 8.0 + uTime * 0.0003) * sin(rd.y * 6.0) * sin(rd.z * 7.0 + uTime * 0.0002);
-    cloudNoise = cloudNoise * 0.5 + 0.5;
-    cloudNoise = smoothstep(0.4, 0.6, cloudNoise);
-    vec3 cloudColor = mix(vec3(0.9, 0.95, 1.0), vec3(1.0, 0.8, 0.6), smoothstep(-0.1, 0.2, sunDir.y));
-    sky = mix(sky, cloudColor, cloudNoise * 0.3 * dayness);
-  }
-  
-  return sky;
-}
-
 void main() {
   vec2 uv = (vUv * 2.0 - 1.0);
   uv.x *= uResolution.x / uResolution.y;
@@ -243,8 +175,9 @@ void main() {
   vec3 ro = uCamPos;
   vec2 hit = raySphere(ro, rd, uWorldRadius);
   if (hit.y < 0.0) {
-    fragColor = vec4(renderSky(rd, uSunDir, false), 1.0);
-    return;
+    vec3 sky = mix(vec3(0.55, 0.72, 0.95), vec3(0.18, 0.32, 0.62), clamp(rd.y * 0.5 + 0.5, 0.0, 1.0));
+    sky += vec3(1.0, 0.95, 0.85) * smoothstep(0.997, 0.9995, dot(rd, uSunDir));
+    fragColor = vec4(sky, 1.0); return;
   }
   float t = max(hit.x, 0.0);
   if (uGhostKind >= 0) t = 0.0;
@@ -259,9 +192,9 @@ void main() {
     if (t > tMax) break;
   }
   if (!hitSurface) {
-    // Hit the sky sphere boundary
-    fragColor = vec4(renderSky(rd, uSunDir, true), 1.0);
-    return;
+    vec3 sky = mix(vec3(0.55, 0.72, 0.95), vec3(0.18, 0.32, 0.62), clamp(rd.y * 0.5 + 0.5, 0.0, 1.0));
+    sky += vec3(1.0, 0.95, 0.85) * smoothstep(0.997, 0.9995, dot(rd, uSunDir));
+    fragColor = vec4(sky, 1.0); return;
   }
   vec3 n = calcNormal(p);
   Scene sceneRes = mapSceneFull(p);
@@ -279,6 +212,13 @@ void main() {
   float diff = max(dot(n, uSunDir), 0.0);
   float amb = 0.35 + 0.25 * (n.y * 0.5 + 0.5);
   vec3 col = base * (amb + diff * 0.7);
-  vec3 sky = renderSky(rd, uSunDir, false);
-  fragColor = vec4(mix(col, sky, 1.0 - exp(-t * 0.012)), 1.0);
+  vec3 sky = mix(vec3(0.55, 0.72, 0.95), vec3(0.18, 0.32, 0.62), clamp(rd.y * 0.5 + 0.5, 0.0, 1.0));
+  
+  // Add atmospheric fade based on distance from planet center
+  float distFromPlanet = length(p);
+  float atmosphericFade = smoothstep(uPlanetRadius + 8.0, uPlanetRadius + 12.0, distFromPlanet);
+  
+  // Combine distance fog and atmospheric fade
+  float fogAmount = max(1.0 - exp(-t * 0.012), atmosphericFade);
+  fragColor = vec4(mix(col, sky, fogAmount), 1.0);
 }`;

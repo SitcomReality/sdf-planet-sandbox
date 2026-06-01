@@ -281,12 +281,7 @@ export class SdfEngine {
     gl.uniform1f(this.uniforms.uFovScale, Math.tan(30 * Math.PI / 180)); gl.uniform1f(this.uniforms.uPlanetRadius, PLANET_RADIUS);
     gl.uniform1f(this.uniforms.uWorldRadius, WORLD_RADIUS); gl.uniform1i(this.uniforms.uEditCount, visible.length);
     gl.uniform1i(this.uniforms.uEditTexWidth, EDIT_TEX_WIDTH); gl.uniform1f(this.uniforms.uTime, time * 0.001);
-    // Rotating sun for day/night cycle (completes rotation every ~2 minutes)
-    const cycleTime = time * 0.0005;
-    const sunDir = [Math.cos(cycleTime) * 0.7, Math.sin(cycleTime), Math.sin(cycleTime) * 0.5];
-    const sunLen = Math.hypot(...sunDir);
-    gl.uniform3fv(this.uniforms.uSunDir, sunDir.map(v => v / sunLen));
-    gl.uniform1i(this.uniforms.uGhostKind, this.selectedShape);
+    gl.uniform3f(this.uniforms.uSunDir, 0.5, 0.7, 0.5); gl.uniform1i(this.uniforms.uGhostKind, this.selectedShape);
     gl.uniform3fv(this.uniforms.uGhostPos, this.ghostWorldPos()); gl.uniform3fv(this.uniforms.uGhostSize, this.shapeSize);
     gl.uniform4fv(this.uniforms.uGhostQuat, this.ghostWorldQuat()); gl.uniform1f(this.uniforms.uGhostOp, this.ghostSubtractMode ? -1 : 1);
     gl.uniform1f(this.uniforms.uSmoothing, this.smoothing); gl.uniform1f(this.uniforms.uNoiseStrength, this.noiseStrength);
