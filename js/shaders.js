@@ -34,7 +34,7 @@ uniform vec3  uGhostSize;
 uniform vec4  uGhostQuat;
 uniform float uGhostOp;
 
-const int   MAX_STEPS      = 40;
+const int   MAX_STEPS      = 64;
 const float DIST_THRESHOLD = 0.003;
 const float MIN_STEP       = 0.0008;
 
@@ -212,13 +212,20 @@ void main() {
   float diff = max(dot(n, uSunDir), 0.0);
   float amb = 0.35 + 0.25 * (n.y * 0.5 + 0.5);
   vec3 col = base * (amb + diff * 0.7);
+  
   vec3 sky = mix(vec3(0.55, 0.72, 0.95), vec3(0.18, 0.32, 0.62), clamp(rd.y * 0.5 + 0.5, 0.0, 1.0));
-  
-  // Add atmospheric fade based on distance from planet center
-  float distFromPlanet = length(p);
-  float atmosphericFade = smoothstep(uPlanetRadius + 8.0, uPlanetRadius + 12.0, distFromPlanet);
-  
-  // Combine distance fog and atmospheric fade
-  float fogAmount = max(1.0 - exp(-t * 0.012), atmosphericFade);
-  fragColor = vec4(mix(col, sky, fogAmount), 1.0);
+  sky += vec3(1.0, 0.95, 0.85) * smoothstep(0.997, 0.9995, dot(rd, uSunDir));
+
+  // Holographic simulation boundary effect
+  float edgeDist = uWorldRadius - length(p);
+  float edgeFade = smoothstep(3.0, 0.0, edgeDist); // Starts 3.0 units away from boundary
+  if (edgeFade > 0.0) {
+    vec3 fp = fract(p * 2.0);
+    float grid = step(0.05, fp.x) * step(0.05, fp.y) * step(0.05, fp.z);
+    vec3 holoCol = mix(vec3(0.1, 0.8, 1.0), sky, edgeFade);
+    col = mix(col, holoCol, edgeFade * (1.0 - grid * 0.85)); // Leave a glowing wireframe pattern
+    col = mix(col, sky, smoothstep(0.8, 1.0, edgeFade)); // fully dissolve to sky right before the cutoff
+  }
+
+  fragColor = vec4(mix(col, sky, 1.0 - exp(-t * 0.012)), 1.0);
 }`;
